@@ -13,4 +13,6 @@
     <li><strong>Genre:</strong> {{ num_genre }}</li>
     <li><strong>Books with 'Mar':</strong> {{ num_books_with_mar }}</li>
   </ul>
+
+  <p>You have visited this page {{ num_visits }} {% if num_visits == 1 %} time{% else %} times{% endif %}.</p>
 {% endblock %}
