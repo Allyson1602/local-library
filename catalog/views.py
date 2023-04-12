@@ -1,7 +1,29 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 
 from catalog.models import Book, Author, BookInstance, Genre
+
+
+class LoanedBooksByLibrarianListView(LoginRequiredMixin, PermissionRequiredMixin, generic.ListView):
+    """Generic class-based view listing books on loan to current user."""
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_librarian.html'
+    paginate_by = 10
+    permission_required = 'catalog.can_mark_returned'
+
+    def get_queryset(self):
+        return BookInstance.objects.filter(status__exact='o').order_by('due_back')
+
+
+class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
+    """Generic class-based view listing books on loan to current user."""
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return BookInstance.objects.filter(borrower=self.request.user).filter(status__exact='o').order_by('due_back')
 
 
 class AuthorDetailView(generic.DetailView):
@@ -32,7 +54,8 @@ class BookDetailView(generic.DetailView):
 class BookListView(generic.ListView):
     model = Book
     paginate_by = 10  # 2
-    context_object_name = 'book_list'   # your own name for the list as a template variable
+    context_object_name = 'book_list'  # your own name for the list as a template variable
+
     # template_name = 'catalog/book_list.html'  # Specify your own template name/location
 
     # queryset = Book.objects.filter(title__icontains='war')[:5]  # Get 5 books containing the title war
@@ -80,4 +103,3 @@ def index(request):
 
     # Render the HTML template index.html with the data in the context variable
     return render(request, 'index.html', context=context)
-
